@@ -1125,7 +1125,7 @@ int place_monster_iuse::use( player &p, item &it, bool, const tripoint &pos ) co
         }
         newmon.friendly = -1;
         if( is_pet ) {
-            newmon.add_effect( effect_pet, 1_turns, num_bp );
+            newmon.add_effect( effect_pet, 1_turns );
         }
     }
     // Transfer label from the item to monster nickname
@@ -2273,6 +2273,7 @@ int fireweapon_on_actor::use( player &p, item &it, bool t, const tripoint & ) co
     if( extinguish ) {
         it.revert( &p, false );
         it.deactivate();
+        return 0;
 
     } else if( one_in( noise_chance ) ) {
         if( noise > 0 ) {
