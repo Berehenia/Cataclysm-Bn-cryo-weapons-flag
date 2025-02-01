@@ -1885,6 +1885,7 @@ void Item_factory::load( islot_gun &slot, const JsonObject &jo, const std::strin
     assign( jo, "blackpowder_tolerance", slot.blackpowder_tolerance, strict, 0 );
     assign( jo, "min_cycle_recoil", slot.min_cycle_recoil, strict, 0 );
     assign( jo, "ammo_effects", slot.ammo_effects, strict );
+    assign( jo, "ammo_to_fire", slot.ammo_to_fire, strict, 1 );
 
     if( jo.has_array( "valid_mod_locations" ) ) {
         slot.valid_mod_locations.clear();
@@ -2035,16 +2036,20 @@ void Item_factory::load( islot_armor &slot, const JsonObject &jo, const std::str
             assign_coverage_from_json( jo, "covers", temp_cover_data, slot.sided );
             slot.data[0].covers = temp_cover_data;
         } else { // This item has copy-from and already has taken data from parent
-            if( jo.has_int( "encumbrance" ) ) {
-                slot.data[0].encumber = jo.get_int( "encumbrance" );
+            if( slot.data.size() > 1 && ( jo.has_int( "encumbrance" ) ||
+                                          jo.has_int( "max_encumbrance" ) ||
+                                          jo.has_int( "coverage" ) ) ) {
+                jo.throw_error( "Legacy armor format only supported for items with exactly 1 armor data entry.  Use \"armor_portion_data\" instead." );
+            }
+            // DISGUSTING hack
+            int old_encumbrance = slot.data[0].encumber;
+            assign( jo, "encumbrance", slot.data[0].encumber, strict );
+            if( old_encumbrance != slot.data[0].encumber ) {
                 slot.data[0].max_encumber = slot.data[0].encumber;
             }
-            if( jo.has_int( "max_encumbrance" ) ) {
-                slot.data[0].max_encumber = jo.get_int( "max_encumbrance" );
-            }
-            if( jo.has_int( "coverage" ) ) {
-                slot.data[0].coverage = jo.get_int( "coverage" );
-            }
+            assign( jo, "max_encumbrance", slot.data[0].max_encumber, strict );
+
+            assign( jo, "coverage", slot.data[0].coverage, strict );
             body_part_set temp_cover_data;
             assign_coverage_from_json( jo, "covers", temp_cover_data, slot.sided );
             if( temp_cover_data.any() ) {
@@ -2387,6 +2392,8 @@ void Item_factory::load( islot_gunmod &slot, const JsonObject &jo, const std::st
     assign( jo, "ammo_effects", slot.ammo_effects, strict );
     assign( jo, "ups_charges_multiplier", slot.ups_charges_multiplier );
     assign( jo, "ups_charges_modifier", slot.ups_charges_modifier );
+    assign( jo, "ammo_to_fire_multiplier", slot.ammo_to_fire_multiplier );
+    assign( jo, "ammo_to_fire_modifier", slot.ammo_to_fire_modifier );
     assign( jo, "weight_multiplier", slot.weight_multiplier );
     if( jo.has_int( "install_time" ) ) {
         slot.install_time = jo.get_int( "install_time" );
